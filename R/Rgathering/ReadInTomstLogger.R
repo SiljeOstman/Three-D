@@ -2,6 +2,7 @@
 
 library("tidyverse")
 library("lubridate")
+library("dplyr")
 
 ###########################
 ### READ IN DATA ###
@@ -15,21 +16,18 @@ source("R/Rgathering/ReadInPlotLevel.R")
 #### CLIMATE DATA ####
 
 # Read in meta data
-#metaTomst <- read_csv("data/INCLINE/metaData/Logger_info.csv", col_names = TRUE, col_types = c("text", "text", "numeric", "numeric", "text", "text", "numeric", "date", "numeric", "date")) %>% 
-  mutate(InitialDate = ymd(InitialDate),
-         InitialDate_Time = ymd_hm(paste(InitialDate, paste(hour(InitialTime), minute(InitialTime), sep = ":"), sep = " ")))
-
-metaTomst <- read_csv2("data/INCLINE/metaData/Logger_info.csv", col_names = TRUE, na = c(""), col_types = "fcffffncnc") %>% 
+metaTomst <- read_csv2("data/INCLINE/metaData/Logger_info.csv", col_names = TRUE, na = c(""), col_types = "fcffffcccc") %>% 
   mutate(
     Date_logger_in = dmy(Date_logger_in),
     Date_logger2_in = dmy(Date_logger2_in)
-  )
+  ) %>%
+  filter(!is.na(Date_logger_in), !is.na(Date_logger2_in))
 
 ### Read in files
-files <- dir(path = "O:/Prosjekter/Between the fjords/INCLINE/Tomst_cleaning/Three-D/data/INCLINE/Fall2020", pattern = "^data.*\\.csv$", full.names = TRUE, recursive = TRUE)
+files <- dir(path = "data/INCLINE/Fall_2020", pattern = "^data.*\\.csv$", full.names = TRUE, recursive = TRUE)
 
 # remove empty file
-files <- files[!(files %in% c("data/climate tomst/2020_Sept_Joa/data_94194607_2.csv"))]
+files <- files[!(files %in% c("data/INCLINE/Fall_2020/data_94194607_2.csv"))]
 
 # Function to read in data
 temp <- map_df(set_names(files), function(file) {
@@ -43,7 +41,7 @@ temp <- map_df(set_names(files), function(file) {
 # "94201711", "94201712", "94201713"
 
 
-TomstLogger_2019_2020 <- temp %>% 
+TomstLogger_2020 <- temp %>% 
   # rename column names
   rename("ID" = "X1", "Date_Time" = "X2", "Time_zone" = "X3", "SoilTemperature" = "X4", "GroundTemperature" = "X5", "AirTemperature" = "X6", "RawSoilmoisture" = "X7", "Shake" = "X8", "ErrorFlag" = "X9") %>% 
   mutate(Date_Time = ymd_hm(Date_Time)) %>% 
@@ -51,7 +49,7 @@ TomstLogger_2019_2020 <- temp %>%
   #mutate(SoilMoisture = a * RawSoilmoisture^2 + b * RawSoilmoisture + c) %>% 
   # get logger ID -> not needed anymore, have whole filename now!!!
   mutate(LoggerID = substr(File, nchar(File)-13, nchar(File)-6)) %>% 
-  left_join(metaTomst, by = "LoggerID") %>% 
+  left_join(metaTomst, by = c("LoggerID" = "Tomst-logger")) %>% 
   
   # Data curation
   
