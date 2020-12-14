@@ -1,3 +1,8 @@
+# Read in packages
+
+library("tidyverse")
+library("lubridate")
+
 ###########################
 ### READ IN DATA ###
 ###########################
@@ -10,16 +15,21 @@ source("R/Rgathering/ReadInPlotLevel.R")
 #### CLIMATE DATA ####
 
 # Read in meta data
-metaTomst <- read_excel(path = "data/metaData/Three-D_ClimateLogger_Meta_2019.xlsx", col_names = TRUE, col_types = c("text", "numeric", "numeric", "text", "date", "date", "date", "text", "date", "date", "text", "date", "text", "date", "text", "date", "text", "date", "text")) %>% 
+#metaTomst <- read_csv("data/INCLINE/metaData/Logger_info.csv", col_names = TRUE, col_types = c("text", "text", "numeric", "numeric", "text", "text", "numeric", "date", "numeric", "date")) %>% 
   mutate(InitialDate = ymd(InitialDate),
          InitialDate_Time = ymd_hm(paste(InitialDate, paste(hour(InitialTime), minute(InitialTime), sep = ":"), sep = " ")))
 
+metaTomst <- read_csv2("data/INCLINE/metaData/Logger_info.csv", col_names = TRUE, na = c(""), col_types = "fcffffncnc") %>% 
+  mutate(
+    Date_logger_in = dmy(Date_logger_in),
+    Date_logger2_in = dmy(Date_logger2_in)
+  )
 
 ### Read in files
-files <- dir(path = "data/climate tomst", pattern = "^data.*\\.csv$", full.names = TRUE, recursive = TRUE)
+files <- dir(path = "O:/Prosjekter/Between the fjords/INCLINE/Tomst_cleaning/Three-D/data/INCLINE/Fall2020", pattern = "^data.*\\.csv$", full.names = TRUE, recursive = TRUE)
 
 # remove empty file
-files <- files[!(files %in% c("data/climate tomst/2020_Sept_Joa/data_94195216_0.csv"))]
+files <- files[!(files %in% c("data/climate tomst/2020_Sept_Joa/data_94194607_2.csv"))]
 
 # Function to read in data
 temp <- map_df(set_names(files), function(file) {
